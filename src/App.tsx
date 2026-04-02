@@ -76,8 +76,10 @@ export default function App() {
   const [isAiAnalyzing, setIsAiAnalyzing] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
   const [selectedPatientForSms, setSelectedPatientForSms] = useState<Patient | null>(null);
+  const [selectedPatientForAssign, setSelectedPatientForAssign] = useState<Patient | null>(null);
   const [generatedSms, setGeneratedSms] = useState<{ english: string, creole: string } | null>(null);
   const [isGeneratingSms, setIsGeneratingSms] = useState(false);
+  const [isAssigning, setIsAssigning] = useState(false);
 
   const handleAiAnalysis = async () => {
     setIsAiAnalyzing(true);
@@ -110,6 +112,18 @@ export default function App() {
     }
   };
 
+  const handleAssignTest = (patient: Patient) => {
+    setSelectedPatientForAssign(patient);
+  };
+
+  const confirmAssignment = () => {
+    setIsAssigning(true);
+    setTimeout(() => {
+      setIsAssigning(false);
+      setSelectedPatientForAssign(null);
+    }, 1500);
+  };
+
   return (
     <div className="min-h-screen bg-[#fafafa] text-[#1a1a1a] font-sans">
       {view === 'landing' && (
@@ -128,6 +142,7 @@ export default function App() {
           isAiAnalyzing={isAiAnalyzing}
           aiAnalysis={aiAnalysis}
           onSendSms={handleGenerateSms}
+          onAssign={handleAssignTest}
         />
       )}
 
@@ -181,6 +196,68 @@ export default function App() {
                   </button>
                 </div>
               ) : null}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Assign Modal */}
+      <AnimatePresence>
+        {selectedPatientForAssign && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedPatientForAssign(null)}
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl p-8 space-y-6"
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="text-xl font-bold tracking-tight">Assign Diagnostic Test</h3>
+                  <p className="text-sm text-gray-500">Patient: {selectedPatientForAssign.name}</p>
+                </div>
+                <button onClick={() => setSelectedPatientForAssign(null)} className="p-2 hover:bg-gray-100 rounded-full">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Select Department</label>
+                  <select className="w-full p-3 bg-gray-50 rounded-xl border border-gray-100 focus:ring-2 focus:ring-emerald-500/20 outline-none">
+                    <option>Radiology</option>
+                    <option>Pathology</option>
+                    <option>Cardiology</option>
+                    <option>General Medicine</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Priority Level</label>
+                  <div className="flex gap-2">
+                    {['Routine', 'Urgent', 'Emergency'].map(p => (
+                      <button key={p} className="flex-1 py-2 rounded-lg border border-gray-100 text-xs font-bold hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <button 
+                onClick={confirmAssignment}
+                disabled={isAssigning}
+                className="w-full py-3 bg-emerald-900 text-white rounded-xl font-bold hover:bg-emerald-800 transition-colors flex items-center justify-center gap-2"
+              >
+                {isAssigning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                Confirm Assignment
+              </button>
             </motion.div>
           </div>
         )}
@@ -421,14 +498,16 @@ function StaffDashboard({
   onAiAnalysis, 
   isAiAnalyzing, 
   aiAnalysis,
-  onSendSms
+  onSendSms,
+  onAssign
 }: { 
   patients: Patient[], 
   onBack: () => void,
   onAiAnalysis: () => void,
   isAiAnalyzing: boolean,
   aiAnalysis: string | null,
-  onSendSms: (p: Patient) => void
+  onSendSms: (p: Patient) => void,
+  onAssign: (p: Patient) => void
 }) {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -538,15 +617,23 @@ function StaffDashboard({
                   </td>
                   <td className="px-8 py-6">
                     <button 
-                      onClick={() => onSendSms(p)}
+                      onClick={() => {
+                        if (p.tests[0].status === 'Pending') {
+                          onAssign(p);
+                        } else {
+                          onSendSms(p);
+                        }
+                      }}
                       className={cn(
                         "px-6 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2",
                         p.tests[0].status === 'Results ready' ? "bg-emerald-600 text-white hover:bg-emerald-700" :
                         p.tests[0].status === 'Delayed' ? "bg-red-600 text-white hover:bg-red-700" :
+                        p.tests[0].status === 'Pending' ? "bg-blue-600 text-white hover:bg-blue-700" :
                         "bg-emerald-900 text-white hover:bg-emerald-800"
                       )}
                     >
-                      {p.tests[0].status === 'Results ready' ? <MessageSquare className="w-3 h-3" /> : null}
+                      {p.tests[0].status === 'Results ready' ? <MessageSquare className="w-3 h-3" /> : 
+                       p.tests[0].status === 'Pending' ? <Plus className="w-3 h-3" /> : null}
                       {p.tests[0].status === 'Results ready' ? 'Send SMS' : 
                        p.tests[0].status === 'Delayed' ? 'Update' : 
                        p.tests[0].status === 'In progress' ? 'Mark done' : 'Assign'}
