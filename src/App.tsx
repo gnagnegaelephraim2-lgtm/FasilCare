@@ -53,19 +53,22 @@ interface Patient {
 const MOCK_PATIENT: Patient = {
   id: 'p1',
   name: 'Aisha Mohamad',
-  ref: 'VH-2024-0312',
+  ref: 'SSRN-2024-0312',
   tests: [
-    { id: 't1', name: 'Blood test — full panel', date: '12 March', ref: 'VH-0312', status: 'Results ready' },
-    { id: 't2', name: 'Chest X-ray', date: '18 March', ref: 'VH-0298', status: 'In progress' },
-    { id: 't3', name: 'Referral — cardiology', date: '20 March', ref: 'VH-0315', status: 'Pending' },
+    { id: 't1', name: 'Blood test — full panel', date: '12 March', ref: 'SSRN-0312', status: 'Results ready' },
+    { id: 't2', name: 'Chest X-ray', date: '18 March', ref: 'SSRN-0298', status: 'In progress' },
+    { id: 't3', name: 'Referral — cardiology', date: '20 March', ref: 'SSRN-0315', status: 'Pending' },
+    { id: 'h1', name: 'Urinalysis', date: '15 Jan 2026', ref: 'SSRN-0102', status: 'Results ready' },
+    { id: 'h2', name: 'ECG Scan', date: '02 Dec 2025', ref: 'SSRN-0045', status: 'Results ready' },
+    { id: 'h3', name: 'General Consultation', date: '10 Nov 2025', ref: 'SSRN-0012', status: 'Results ready' },
   ]
 };
 
 const MOCK_STAFF_PATIENTS: Patient[] = [
-  { id: 'p1', name: 'Aisha Mohamad', ref: 'VH-0312', tests: [{ id: 't1', name: 'Blood test', date: '12 March', ref: 'VH-0312', status: 'Results ready', waitingDays: 4 }] },
-  { id: 'p2', name: 'Ravi Goburdhun', ref: 'VH-0287', tests: [{ id: 't2', name: 'MRI scan', date: '15 March', ref: 'VH-0287', status: 'Delayed', waitingDays: 18 }] },
-  { id: 'p3', name: 'Fatima Sulliman', ref: 'VH-0301', tests: [{ id: 't3', name: 'Lab results', date: '16 March', ref: 'VH-0301', status: 'In progress', waitingDays: 7 }] },
-  { id: 'p4', name: 'Jean-Paul Labonte', ref: 'VH-0315', tests: [{ id: 't4', name: 'Referral — cardiology', date: '20 March', ref: 'VH-0315', status: 'Pending', waitingDays: 2 }] },
+  { id: 'p1', name: 'Aisha Mohamad', ref: 'SSRN-0312', tests: [{ id: 't1', name: 'Blood test', date: '12 March', ref: 'SSRN-0312', status: 'Results ready', waitingDays: 4 }] },
+  { id: 'p2', name: 'Ravi Goburdhun', ref: 'SSRN-0287', tests: [{ id: 't2', name: 'MRI scan', date: '15 March', ref: 'SSRN-0287', status: 'Delayed', waitingDays: 18 }] },
+  { id: 'p3', name: 'Fatima Sulliman', ref: 'SSRN-0301', tests: [{ id: 't3', name: 'Lab results', date: '16 March', ref: 'SSRN-0301', status: 'In progress', waitingDays: 7 }] },
+  { id: 'p4', name: 'Jean-Paul Labonte', ref: 'SSRN-0315', tests: [{ id: 't4', name: 'Referral — cardiology', date: '20 March', ref: 'SSRN-0315', status: 'Pending', waitingDays: 2 }] },
 ];
 
 export default function App() {
@@ -238,7 +241,7 @@ function LandingPage({ onTrack, onStaff }: { onTrack: () => void, onStaff: () =>
               <div className="space-y-4">
                 <div className="bg-white/10 p-4 rounded-2xl border border-white/5">
                   <p className="text-white text-sm leading-relaxed">
-                    Your blood test results are ready. Return to Victoria Hospital, Room 4, 8am-12pm. Ref: VH-0312
+                    Your blood test results are ready. Return to SSRN Hospital, Room 4, 8am-12pm. Ref: SSRN-0312
                   </p>
                 </div>
                 <div className="bg-white/10 p-4 rounded-2xl border border-white/5">
@@ -248,7 +251,7 @@ function LandingPage({ onTrack, onStaff }: { onTrack: () => void, onStaff: () =>
                 </div>
                 <div className="bg-emerald-500/20 p-4 rounded-2xl border border-emerald-500/20">
                   <p className="text-emerald-100 text-sm leading-relaxed">
-                    Ou bann rezilta tess disang pare. Al Victoria Hospital, Lasal 4. Ref: VH-0312
+                    Ou bann rezilta tess disang pare. Al SSRN Hospital, Lasal 4. Ref: SSRN-0312
                   </p>
                 </div>
               </div>
@@ -273,6 +276,9 @@ function LandingPage({ onTrack, onStaff }: { onTrack: () => void, onStaff: () =>
 }
 
 function PatientDashboard({ patient, onBack }: { patient: Patient, onBack: () => void }) {
+  const activeTests = patient.tests.filter(t => t.status !== 'Results ready' || t.id.startsWith('t'));
+  const historicalTests = patient.tests.filter(t => t.id.startsWith('h'));
+
   return (
     <div className="min-h-screen flex">
       {/* Sidebar */}
@@ -321,53 +327,88 @@ function PatientDashboard({ patient, onBack }: { patient: Patient, onBack: () =>
 
       {/* Main Content */}
       <main className="flex-1 p-12 overflow-y-auto">
-        <div className="max-w-4xl space-y-8">
+        <div className="max-w-4xl space-y-12">
           <div className="flex justify-between items-end">
             <div>
               <h2 className="text-3xl font-bold text-emerald-950">Good morning, Aisha</h2>
-              <p className="text-gray-500 font-medium">Monday, 23 March 2026 · Victoria Hospital</p>
+              <p className="text-gray-500 font-medium">Monday, 23 March 2026 · SSRN Hospital</p>
             </div>
           </div>
 
           <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl flex items-center gap-4">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <p className="text-emerald-800 text-sm font-medium">
-              Action needed: Your blood test results are ready. Return to Victoria Hospital, Room 4, between 8am–12pm.
+              Action needed: Your blood test results are ready. Return to SSRN Hospital, Room 4, between 8am–12pm.
             </p>
           </div>
 
-          <div className="space-y-4">
-            {patient.tests.map((test) => (
-              <div key={test.id} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-center mb-4">
-                  <div>
-                    <h3 className="font-bold text-gray-900">{test.name}</h3>
-                    <p className="text-xs text-gray-400 font-medium">Requested {test.date} · Ref {test.ref}</p>
+          {/* Active Tests */}
+          <section className="space-y-6">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 px-2">Active Tests</h3>
+            <div className="space-y-4">
+              {activeTests.map((test) => (
+                <div key={test.id} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex justify-between items-center mb-4">
+                    <div>
+                      <h3 className="font-bold text-gray-900">{test.name}</h3>
+                      <p className="text-xs text-gray-400 font-medium">Requested {test.date} · Ref {test.ref}</p>
+                    </div>
+                    <span className={cn(
+                      "px-4 py-1.5 rounded-full text-xs font-bold",
+                      test.status === 'Results ready' ? "bg-emerald-100 text-emerald-700" :
+                      test.status === 'In progress' ? "bg-blue-100 text-blue-700" :
+                      "bg-orange-100 text-orange-700"
+                    )}>
+                      {test.status}
+                    </span>
                   </div>
-                  <span className={cn(
-                    "px-4 py-1.5 rounded-full text-xs font-bold",
-                    test.status === 'Results ready' ? "bg-emerald-100 text-emerald-700" :
-                    test.status === 'In progress' ? "bg-blue-100 text-blue-700" :
-                    "bg-orange-100 text-orange-700"
-                  )}>
-                    {test.status}
-                  </span>
+                  <div className="w-full h-2 bg-gray-50 rounded-full overflow-hidden">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: test.status === 'Results ready' ? '100%' : test.status === 'In progress' ? '60%' : '20%' }}
+                      className={cn(
+                        "h-full rounded-full",
+                        test.status === 'Results ready' ? "bg-emerald-500" :
+                        test.status === 'In progress' ? "bg-blue-500" :
+                        "bg-orange-500"
+                      )}
+                    />
+                  </div>
                 </div>
-                <div className="w-full h-2 bg-gray-50 rounded-full overflow-hidden">
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: test.status === 'Results ready' ? '100%' : test.status === 'In progress' ? '60%' : '20%' }}
-                    className={cn(
-                      "h-full rounded-full",
-                      test.status === 'Results ready' ? "bg-emerald-500" :
-                      test.status === 'In progress' ? "bg-blue-500" :
-                      "bg-orange-500"
-                    )}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Test History */}
+          <section className="space-y-6">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 px-2">Test History</h3>
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-gray-50 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                    <th className="px-6 py-4">Test Name</th>
+                    <th className="px-6 py-4">Date</th>
+                    <th className="px-6 py-4">Reference</th>
+                    <th className="px-6 py-4">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {historicalTests.map((test) => (
+                    <tr key={test.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-6 py-4 text-sm font-bold text-gray-900">{test.name}</td>
+                      <td className="px-6 py-4 text-sm text-gray-500">{test.date}</td>
+                      <td className="px-6 py-4 text-xs font-mono text-gray-400">{test.ref}</td>
+                      <td className="px-6 py-4">
+                        <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                          Completed
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
         </div>
       </main>
     </div>
@@ -399,7 +440,7 @@ function StaffDashboard({
           <span className="font-bold text-xl">FasilCare — Staff Portal</span>
         </div>
         <div className="flex items-center gap-6 text-xs font-bold uppercase tracking-widest text-emerald-300">
-          <span>Victoria Hospital</span>
+          <span>SSRN Hospital</span>
           <div className="w-px h-4 bg-emerald-800" />
           <span>Dr. Patel</span>
           <div className="w-px h-4 bg-emerald-800" />
