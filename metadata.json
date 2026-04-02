@@ -1,0 +1,5 @@
+{
+  "name": "FasilCare",
+  "description": "A diagnostic tracking platform for public hospitals in Mauritius, providing real-time test status updates via SMS and web dashboards.",
+  "requestFramePermissions": []
+}
